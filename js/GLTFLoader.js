@@ -54,7 +54,7 @@ THREE.GLTFLoader = ( function () {
 					onError( e );
 
 				} else {
-
+					console.log(e.stack);
 					console.error( e );
 
 				}
@@ -1187,7 +1187,7 @@ THREE.GLTFLoader = ( function () {
 
 		// Invalid URL
 		if ( typeof url !== 'string' || url === '' ) return '';
-		
+
 		// Host Relative URL
 		if ( /^https?:\/\//i.test( path ) && /^\//.test( url ) ) {
 
