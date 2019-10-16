@@ -40,10 +40,9 @@ function init(){
 	scene = new THREE.Scene();
 	// scene.fog = new THREE.Fog(0xFAAB75, 0.0025, 20);
 	scene.fog = new THREE.FogExp2(0xFAAB75, .03);
-	renderer = new THREE.WebGLRenderer({
-		alpha: true,
-		antialias: true,
-	});
+
+	renderer = new THREE.WebGLRenderer({alpha: true,antialias: true,});
+	// document.body.appendChild(renderer.domElement);
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -127,6 +126,31 @@ function init(){
 	// create an AudioListener and add it to the camera
 	listener = new THREE.AudioListener();
 	camera.add( listener );
+
+
+	document.getElementById("fullscreen").addEventListener("click", function(){
+	  toggleFullScreen();
+	}, false);
+
+	function toggleFullScreen() {
+	  if (!document.fullscreenElement) {
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			camera.updateProjectionMatrix();
+	      document.documentElement.requestFullscreen();
+	  } else {
+	    if (document.exitFullscreen) {
+	      document.exitFullscreen();
+	    }
+	  }
+	}
+
+	document.getElementById("sound").addEventListener("click", function(){
+		if (sound.isPlaying == true){
+			sound.pause();
+		} else {
+			sound.play();
+		}
+	});
 
 	// create a global audio source
 	sound = new THREE.Audio( listener );
@@ -389,8 +413,24 @@ function animatePlayer(delta) {
 	camera.translateZ(playerVelocity.z * delta);
 }
 
+function resizeCanvasToDisplaySize() {
+  const canvas = renderer.domElement;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if (canvas.width !== width ||canvas.height !== height) {
+    // you must pass false here or three.js sadly fights the browser
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    // set render target sizes here
+  }
+}
+
 //function makes scene moves
-function animate (){
+function animate (time){
+
+	 time *= 0.001;
 
 	if (RESOURCES_LOADED == false) {
 		requestAnimationFrame(animate);
@@ -399,8 +439,12 @@ function animate (){
 		return;
 	} else {
 		document.getElementById("loading").style.display = "none";
+		document.getElementById("sound").style.display = "block";
+		document.getElementById("fullscreen").style.display = "block";
+
 	}
 
+resizeCanvasToDisplaySize();
 	//animate the scene
 	requestAnimationFrame(animate);
 	// renderer.render(scene, camera);
@@ -416,8 +460,8 @@ function animate (){
 
 
 	// move red cube
-	redCube.rotation.x += 0.01;
-	redCube.rotation.y += 0.02;
+	// redCube.rotation.x += 0.01;
+	// redCube.rotation.y += 0.02;
 
 	//requests the cordinates of camera
 	// var givemelocation = camera.getWorldPosition();
@@ -439,6 +483,7 @@ function particlesMove () {
 	// setWaves();
 	composer.render(0.1);
 }
+
 // onload function to get start screen
 window.onload = function() {
 	var startButton = document.getElementById( 'startButton' );
