@@ -23,34 +23,120 @@ canvas {
 				top: 0;
 				left: 0;
 				width: 100%;
-				height:100%;
+				height: 100%;
 				display: flex;
 				align-items: center;
 				justify-content: center;
 				opacity: 1;
-				background-color: #000000;
 				color: #ffffff;
+				background-color: #F9C87F;
+				background-image: url("../images/bg.jpg");
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: cover;
 			}
 			#overlay > div {
 					text-align: center;
 				}
 				#overlay > div > button {
-					height: 20px;
+					height: 32px;
 					width: 100px;
+					font-family: 'Work Sans', sans-serif;
+					font-size: .8em;
+					letter-spacing: .5px;
 					background: transparent;
 					color: #ffffff;
 					outline: 1px solid #ffffff;
 					border: 0px;
-					cursor: pointer;
+					margin-top: 2.8em;
 				}
-				#overlay > div > p {
-					color: #777777;
-					font-size: 18px;
+				#overlay > div > h1 {
+					color: #ffffff;
+					font-family: 'Noto Serif', serif;
+					letter-spacing: 1px;
+					font-size: 8em;
+					text-shadow: 0px 6px #EFA169;
+					margin-top: 0px;
+					margin-bottom: 0px;
+					line-height: .8em;
 				}
+				#overlay > div > h2 {
+					color: #ffffff;
+					font-family: 'Work Sans', sans-serif;
+					font-size: 1.2em;
+					margin-bottom: 0px;
+					margin-bottom: 0px;
+				}
+
 #info {
 	position: absolute;
 	z-index: 5;
 	top: 15px;
 	left: 15px;
 	color: #ffffff;
+}
+
+#loading {
+				position: absolute;
+				z-index: 999;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				opacity: 1;
+				color: #ffffff;
+				background: linear-gradient(#fda085, #f6d365);
+}
+
+.spinner {
+  margin: 100px auto;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  text-align: center;
+	z-index: 999;
+
+  -webkit-animation: sk-rotate 2.0s infinite linear;
+  animation: sk-rotate 2.0s infinite linear;
+}
+
+.dot1, .dot2 {
+  width: 60%;
+  height: 60%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  background-color: #ffffff;
+  border-radius: 100%;
+
+  -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+  animation: sk-bounce 2.0s infinite ease-in-out;
+}
+
+.dot2 {
+  top: auto;
+  bottom: 0;
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+@-webkit-keyframes sk-rotate { 100% { -webkit-transform: rotate(360deg) }}
+@keyframes sk-rotate { 100% { transform: rotate(360deg); -webkit-transform: rotate(360deg) }}
+
+@-webkit-keyframes sk-bounce {
+  0%, 100% { -webkit-transform: scale(0.0) }
+  50% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bounce {
+  0%, 100% {
+    transform: scale(0.0);
+    -webkit-transform: scale(0.0);
+  } 50% {
+    transform: scale(1.0);
+    -webkit-transform: scale(1.0);
+  }
 }

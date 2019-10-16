@@ -71,15 +71,15 @@ function init(){
 		RESOURCES_LOADED = true;
 	}
 
-	// create a red cube
-	redCube = new THREE.Mesh(
-		new THREE.BoxGeometry(1,1,1),
-		new THREE.MeshBasicMaterial({color:0xff4444, wireframe:false})
-	);
-	// 	redCube.castShadow = true; //default is false
-	// redCube.receiveShadow = true; //default
-	redCube.position.set(0,5,-5);
-	scene.add(redCube);
+	// // create a red cube
+	// redCube = new THREE.Mesh(
+	// 	new THREE.BoxGeometry(1,1,1),
+	// 	new THREE.MeshBasicMaterial({color:0xff4444, wireframe:false})
+	// );
+	// // 	redCube.castShadow = true; //default is false
+	// // redCube.receiveShadow = true; //default
+	// redCube.position.set(0,5,-5);
+	// scene.add(redCube);
 
 	// add an AmbientLight to scene
 	// var light = new THREE.AmbientLight( 0xffe17c, .5 );
@@ -359,7 +359,7 @@ function animateCameraHeight () {
 	raycaster.set(camera.position, new THREE.Vector3(0, -1, 0));
 	var intersects = raycaster.intersectObject(mtplane);
 	camera.position.y = intersects[0].point.y + playerHeight;
-	console.log(mtplane);
+	// console.log(mtplane);
 }
 
 function animatePlayer(delta) {
@@ -394,8 +394,11 @@ function animate (){
 
 	if (RESOURCES_LOADED == false) {
 		requestAnimationFrame(animate);
+		document.getElementById("loading").style.display = "flex";
 		renderer.render(loadingScreen.scene, loadingScreen.camera);
 		return;
+	} else {
+		document.getElementById("loading").style.display = "none";
 	}
 
 	//animate the scene

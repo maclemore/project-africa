@@ -4,6 +4,7 @@
 	<meta charset=utf-8>
 	<title>Africa | An Interactive Experience</title>
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<link href="https://fonts.googleapis.com/css?family=Noto+Serif:700|Work+Sans&display=swap" rel="stylesheet">
 	<script type="text/javascript" src="js/three.js"></script>
 	<script type="text/javascript" src="js/world.js"></script>
 	<script type="text/javascript" src="js/GLTFLoader.js"></script>
@@ -11,12 +12,24 @@
 	<script type="text/javascript" src="js/simplex-noise.min.js"></script>
 </head>
 <body>
+
 	<div id="overlay">
 		<div>
-			<p>Welcome to Africa</p>
+			<h1>Africa</h1>
+			<h2>An Interactive Experience</h2>
 			<button id="startButton">ENTER</button>
 		</div>
 	</div>
+
+	<div id="loading">
+		<div>
+			<div class="spinner">
+				<div class="dot1"></div>
+				<div class="dot2"></div>
+			</div>
+		</div>
+	</div>
+
 	<div id="info"></div>
 	<div id="world"></div>
 </body>
