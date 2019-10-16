@@ -1,20 +1,32 @@
 // Sets up renderer, scene, light, and postprocessing
-var scene, camera, listener, sound, renderer, redCube, container, dune, composer;
+var scene, camera, listener, sound, renderer, redCube, container, dune, composer, moverGroup, pGeometry, simplexnoise, mtplane, planematerial, planegeometry;
 var keyboard = {};
-
 // Flags to determine which direction the player is moving
 var moveForward = false;
 var moveBackward = false;
 var moveLeft = false;
 var moveRight = false;
-
-// Velocity vector for the player
+// Velocity vector for the player (camera)
 var playerVelocity = new THREE.Vector3();
 var playerHeight = 2.5;
-
+var planeHeight;
+var raycaster;
+var intersects;
 // How fast the player will move
 var PLAYERSPEED = 50.0;
 var clock;
+// Sets up loading manager
+var LOADING_MANAGER = null;
+var RESOURCES_LOADED = false;
+
+var loadingScreen = {
+	scene: new THREE.Scene(),
+	camera: new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000),
+	box: new THREE.Mesh (
+		new THREE.BoxGeometry(1,1,1),
+		new THREE.MeshBasicMaterial({color:0xff4444})
+	)
+}
 
 function init(){
 
@@ -26,7 +38,8 @@ function init(){
 	overlay.remove();
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2(0xFAAB75, .25);
+	// scene.fog = new THREE.Fog(0xFAAB75, 0.0025, 20);
+	scene.fog = new THREE.FogExp2(0xFAAB75, .03);
 	renderer = new THREE.WebGLRenderer({
 		alpha: true,
 		antialias: true,
@@ -39,9 +52,24 @@ function init(){
 	container.appendChild(renderer.domElement);
 
 	// Set camera position & details
-	camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 2000);
+	camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.5, 2000);
 	camera.position.set(0,playerHeight,-5);
 	// camera.lookAt(new THREE.Vector3(0,0,0));
+
+	loadingScreen.box.position.set(0,0,0);
+	loadingScreen.camera.lookAt(loadingScreen.box.position);
+	loadingScreen.scene.add(loadingScreen.box);
+
+	loadingManager = new THREE.LoadingManager ();
+
+	loadingManager.onProgress = function (item, loaded, total) {
+		console.log(item, loaded, total);
+	}
+
+	loadingManager.onLoad = function (){
+		console.log ("loaded all resources");
+		RESOURCES_LOADED = true;
+	}
 
 	// create a red cube
 	redCube = new THREE.Mesh(
@@ -58,14 +86,14 @@ function init(){
 	// scene.add( light );
 
 	// // add a pointlight to the whole scene
-	var pointLight = new THREE.PointLight(0xffffff,.2, 0, 100);
+	var pointLight = new THREE.PointLight(0xffffff,.1, 0, 100);
 	pointLight.position.set( 0, 100, 0 );
 	pointLight.castShadow = true;
 	scene.add( pointLight );
 
 	//Set up shadow properties for the light
-	pointLight.shadow.mapSize.width = 512;  // default
-	pointLight.shadow.mapSize.height = 512; // default
+	pointLight.shadow.mapSize.width = 1024;  // default
+	pointLight.shadow.mapSize.height = 1024; // default
 	pointLight.shadow.camera.near = 0.5;       // default
 	pointLight.shadow.camera.far = 500;      // default
 
@@ -104,7 +132,7 @@ function init(){
 	sound = new THREE.Audio( listener );
 
 	// load a sound and set it as the Audio object's buffer
-	var audioLoader = new THREE.AudioLoader();
+	var audioLoader = new THREE.AudioLoader(loadingManager);
 	audioLoader.load('sounds/africa.mp3', function( buffer ) {
 		sound.setBuffer( buffer );
 		sound.setLoop( true );
@@ -139,18 +167,64 @@ function init(){
 	// 	scene.add(dune);
 	// });
 
-	var loader = new THREE.GLTFLoader();
-	loader.load( 'models/dune.gltf', function ( gltf ) {
-		gltf.scene.traverse( function ( child ) {
-			if ( child.isMesh ) {
-				child.geometry.center(); // center here
-			}
-		});
-		gltf.scene.scale.set(40,18,40) // scale here
-		scene.add( gltf.scene );
-	}, (xhr) => xhr, ( err ) => console.error( e ));
 
-	var loader = new THREE.GLTFLoader();
+	var planegeometry = new THREE.PlaneGeometry( 2000, 2000, 256, 256 );
+	var planematerial = new THREE.MeshLambertMaterial({
+	  color: 0xFFCC7C,
+	  opacity: 1,
+		emissive : 0xFFCC7C,
+		// castShadow: false,
+		// receiveShadow: true,
+	  // blending: THREE.NoBlending,
+	  // side: THREE.FrontSide,
+	  // transparent: false,
+	  // depthTest: false,
+	  // wireframe: true,
+	});
+
+	mtplane = new THREE.Mesh(planegeometry, planematerial );
+	mtplane.rotation.x = -Math.PI / 2;
+	mtplane.position.set(0, 0, 0);
+	mtplane.castShadow = false;
+	mtplane.receiveShadow = true;
+
+	var simplexnoise = new SimplexNoise();
+	for ( let vertex of mtplane.geometry.vertices ) {
+	  let xoff = ( vertex.x / 180 );
+	  let yoff = ( vertex.y / 180 ) + 0;
+	  let rand = simplexnoise.noise2D( xoff, yoff ) * 12;
+	  vertex.z = rand;
+	}
+
+	mtplane.updateMatrixWorld(true);
+	scene.add(mtplane);
+// console.log(mtplane);
+
+// var raycaster = new THREE.Raycaster();
+// raycaster.set(camera.position, new THREE.Vector3(0, -1, 0));
+// var intersects = raycaster.intersectObject(mtplane);
+// console.log(intersects[0].point.y);
+
+
+	// var raycaster = new THREE.Raycaster();
+	// raycaster.set(camera.position, new THREE.Vector3(0, -1, 0));
+	//
+	// var intersects = raycaster.intersectObject(mtplane);
+	// camera.position.y = intersects[0].point.y + playerHeight;
+
+
+	// var loader = new THREE.GLTFLoader(loadingManager);
+	// loader.load( 'models/dune.gltf', function ( gltf ) {
+	// 	gltf.scene.traverse( function ( child ) {
+	// 		if ( child.isMesh ) {
+	// 			child.geometry.center(); // center here
+	// 		}
+	// 	});
+	// 	gltf.scene.scale.set(40,18,40) // scale here
+	// 	scene.add( gltf.scene );
+	// }, (xhr) => xhr, ( err ) => console.error( e ));
+
+	var loader = new THREE.GLTFLoader(loadingManager);
 	loader.load( 'models/ring2.gltf', function ( gltf ) {
 		gltf.scene.traverse( function ( child ) {
 			if ( child.isMesh ) {
@@ -163,7 +237,7 @@ function init(){
 		scene.add( gltf.scene );
 	}, (xhr) => xhr, ( err ) => console.error( e ));
 
-	var loader = new THREE.GLTFLoader();
+	var loader = new THREE.GLTFLoader(loadingManager);
 	loader.load( 'models/mountains.gltf', function ( gltf ) {
 		gltf.scene.traverse( function ( child ) {
 			if ( child.isMesh ) {
@@ -175,6 +249,46 @@ function init(){
 		gltf.scene.position.set(0,-100,-2000) // scale here
 		scene.add( gltf.scene );
 	}, (xhr) => xhr, ( err ) => console.error( e ));
+
+	const gltfLoader = new THREE.GLTFLoader(loadingManager);
+	const url = 'models/ring1.gltf';
+	gltfLoader.load(url, (gltf) => {
+		const rock1 = gltf.scene;
+		rock1.scale.set (20,20,20)
+		rock1.position.set(0,-5,-120)
+		scene.add(rock1);
+	});
+
+
+	moverGroup = new THREE.Object3D();
+	scene.add(moverGroup);
+
+	pGeometry = new THREE.Geometry();
+	// sprite = textureLoader.load('images/sprite.png');
+	var sprite = new THREE.TextureLoader(loadingManager).load( 'images/sprite.png' );
+	// var sprite = new THREE.TextureLoader();
+	// sprite.load('images/sprite.png');
+	for (i = 0; i < 4000; i++) {
+			var vertex = new THREE.Vector3();
+			vertex.x = 4000 * Math.random() - 2000;
+			vertex.y = -50 + Math.random() * 700;
+			vertex.z = 5000 * Math.random() - 2000;
+			pGeometry.vertices.push(vertex);
+	}
+	let material = new THREE.PointsMaterial({
+			size: 7,
+			map: sprite,
+			transparent: true,
+			opacity: 0.65,
+			blending: THREE.AdditiveBlending,
+			alphaTest: 0.5,
+			fog: false
+	});
+
+	var particles = new THREE.Points(pGeometry, material);
+	particles.sortParticles = true;
+	moverGroup.add(particles);
+
 
 	animate ();
 }
@@ -240,7 +354,16 @@ function listenForPlayerMovement() {
 	document.addEventListener('keyup', onKeyUp, false);
 }
 
+function animateCameraHeight () {
+	var raycaster = new THREE.Raycaster();
+	raycaster.set(camera.position, new THREE.Vector3(0, -1, 0));
+	var intersects = raycaster.intersectObject(mtplane);
+	camera.position.y = intersects[0].point.y + playerHeight;
+	console.log(mtplane);
+}
+
 function animatePlayer(delta) {
+
 	// Gradual slowdown
 	playerVelocity.x -= playerVelocity.x * 10.0 * delta;
 	playerVelocity.z -= playerVelocity.z * 10.0 * delta;
@@ -269,27 +392,50 @@ function animatePlayer(delta) {
 //function makes scene moves
 function animate (){
 
+	if (RESOURCES_LOADED == false) {
+		requestAnimationFrame(animate);
+		renderer.render(loadingScreen.scene, loadingScreen.camera);
+		return;
+	}
+
 	//animate the scene
 	requestAnimationFrame(animate);
 	// renderer.render(scene, camera);
+	particlesMove();
 	composer.render(0.1);
+
+
 
 	// animate player's movement
 	var delta = clock.getDelta();
+	animateCameraHeight();
 	animatePlayer(delta);
+
 
 	// move red cube
 	redCube.rotation.x += 0.01;
 	redCube.rotation.y += 0.02;
 
 	//requests the cordinates of camera
-	var givemelocation = camera.getWorldPosition();
-	// console.log(givemelocation);
-	var info = JSON.stringify(givemelocation);
-	document.getElementById("info").innerHTML = info;
-	// console.log(info);
+	// var givemelocation = camera.getWorldPosition();
+	// // console.log(givemelocation);
+	// var info = JSON.stringify(givemelocation);
+	// document.getElementById("info").innerHTML = info;
+	// // console.log(info);
 }
 
+function particlesMove () {
+	for (i = 0; i < 4000; i++) {
+			pGeometry.vertices[i].z += .5;
+			if (pGeometry.vertices[i].z > 2700) {
+					pGeometry.vertices[i].z = -2000;
+			}
+	}
+	pGeometry.verticesNeedUpdate = true;
+
+	// setWaves();
+	composer.render(0.1);
+}
 // onload function to get start screen
 window.onload = function() {
 	var startButton = document.getElementById( 'startButton' );
